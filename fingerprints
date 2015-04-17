@@ -1,0 +1,39 @@
+alias fingerprint='fingerprints'
+alias show_fingerprints='known_fingerprint'
+
+OS=`uname`
+
+if [ $OS = SunOS ]; then
+    HOSTNAME=`hostname | cut -f 1 -d .`
+else
+    HOSTNAME=`hostname -s`
+fi
+
+# SSH fingerprints
+known_fingerprint() {
+    if [ "X${1}" = "X" ]; then
+        echo "Usage: hostname"
+        return
+    fi
+    HOSTNAME=$1
+    ssh-keygen -l -f ~/.ssh/known_hosts -F $HOSTNAME
+}
+check_fp_file() {
+    if [ -r $1 ]; then
+        ssh-keygen -l -f $1
+    fi
+}
+fingerprints() {
+  case $OS in
+    Darwin)
+        check_fp_file /private/etc/ssh_host_dsa_key.pub
+        check_fp_file /private/etc/ssh_host_rsa_key.pub
+        check_fp_file /private/etc/ssh/ssh_host_ecdsa_key.pub
+    ;;
+    *)
+        check_fp_file /etc/ssh/ssh_host_dsa_key.pub
+        check_fp_file /etc/ssh/ssh_host_rsa_key.pub
+        check_fp_file /etc/ssh/ssh_host_ecdsa_key.pub
+      ;;
+  esac
+}
