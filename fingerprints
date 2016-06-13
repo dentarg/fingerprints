@@ -15,8 +15,11 @@ known_fingerprint() {
         echo "Usage: hostname"
         return
     fi
+
+    SCRIPTNAME=`basename $0`
     HOSTNAME=$1
     ssh-keygen -l -f ~/.ssh/known_hosts -F $HOSTNAME
+    ssh-keygen -l -f ~/.ssh/known_hosts -F $HOSTNAME -E md5 # require >= OpenSSH 6.8
 }
 check_fp_file() {
     if [ -r $1 ]; then
