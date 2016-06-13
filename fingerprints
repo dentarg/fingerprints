@@ -1,15 +1,7 @@
 alias fingerprint='fingerprints'
+alias show_fingerprint='known_fingerprint'
 alias show_fingerprints='known_fingerprint'
 
-OS=`uname`
-
-if [ $OS = SunOS ]; then
-    HOSTNAME=`hostname | cut -f 1 -d .`
-else
-    HOSTNAME=`hostname -s`
-fi
-
-# SSH fingerprints
 known_fingerprint() {
     if [ "X${1}" = "X" ]; then
         echo "Usage: hostname"
@@ -21,22 +13,9 @@ known_fingerprint() {
     ssh-keygen -l -f ~/.ssh/known_hosts -F $HOSTNAME
     ssh-keygen -l -f ~/.ssh/known_hosts -F $HOSTNAME -E md5 # require >= OpenSSH 6.8
 }
-check_fp_file() {
-    if [ -r $1 ]; then
-        ssh-keygen -l -f $1
-    fi
-}
+
 fingerprints() {
-  case $OS in
-    Darwin)
-        check_fp_file /private/etc/ssh_host_dsa_key.pub
-        check_fp_file /private/etc/ssh_host_rsa_key.pub
-        check_fp_file /private/etc/ssh/ssh_host_ecdsa_key.pub
-    ;;
-    *)
-        check_fp_file /etc/ssh/ssh_host_dsa_key.pub
-        check_fp_file /etc/ssh/ssh_host_rsa_key.pub
-        check_fp_file /etc/ssh/ssh_host_ecdsa_key.pub
-      ;;
-  esac
+	find -L /etc -name "ssh_host_*.pub" -exec ssh-keygen -l -f {} \; 2> /dev/null
+	echo
+	find -L /etc -name "ssh_host_*.pub" -exec ssh-keygen -E md5 -l -f {} \; 2> /dev/null
 }
